@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AquaSafe ZMG - Solución Inteligente ODS #6</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        aqua: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            200: '#bae6fd',
+                            300: '#7dd3fc',
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                            800: '#075985',
+                            900: '#0c4a6e',
+                        },
+                        ecoGreen: {
+                            500: '#10b981',
+                            600: '#059669',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #0284c7 0%, #0369a1 50%, #0f172a 100%);
+        }
+        .pulse-warning {
+            animation: pulse-red 2s infinite;
+        }
+        @keyframes pulse-red {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 12px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+        .pulse-safe {
+            animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { box-shadow: 0 0 0 12px rgba(16, 185, 129, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col justify-between">
+
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-50 bg-white/90 backdrop-filter backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <!-- Logo -->
+                <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('dashboard')">
+                    <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-aqua-600 to-cyan-400 flex items-center justify-center text-white shadow-md shadow-aqua-500/30">
+                        <i class="fa-solid fa-droplet text-2xl"></i>
+                    </div>
+                    <div>
+                        <span class="text-2xl font-extrabold bg-gradient-to-r from-aqua-700 to-cyan-500 bg-clip-text text-transparent">AquaSafe</span>
+                        <span class="text-xs font-semibold uppercase tracking-wider block text-slate-500">ZMG • ODS #6</span>
+                    </div>
+                </div>
+
+                <!-- Navigation Tabs (Desktop) -->
+                <nav class="hidden md:flex space-x-1 lg:space-x-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200/80">
+                    <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn active-tab px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+                        <i class="fa-solid fa-chart-line mr-2"></i>Inicio / Dashboard
+                    </button>
+                    <button onclick="switchTab('ods')" id="nav-ods" class="nav-btn text-slate-600 hover:text-slate-900 px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+                        <i class="fa-solid fa-earth-americas mr-2"></i>Insumos & ODS #6
+                    </button>
+                    <button onclick="switchTab('canvas')" id="nav-canvas" class="nav-btn text-slate-600 hover:text-slate-900 px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+                        <i class="fa-solid fa-table-cells-large mr-2"></i>Plan de Negocios
+                    </button>
+                    <button onclick="switchTab('sensor')" id="nav-sensor" class="nav-btn text-slate-600 hover:text-slate-900 px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+                        <i class="fa-solid fa-microchip mr-2"></i>Sensor SIAPA IoT
+                    </button>
+                    <button onclick="switchTab('store')" id="nav-store" class="nav-btn text-slate-600 hover:text-slate-900 px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+                        <i class="fa-solid fa-store mr-2"></i>Tienda & Cotizador
+                    </button>
+                </nav>
+
+                <!-- Action Button -->
+                <div class="hidden lg:flex items-center gap-3">
+                    <button onclick="switchTab('store')" class="bg-aqua-600 hover:bg-aqua-700 text-white px-5 py-2.5 rounded-xl text-sm font-semibold shadow-lg shadow-aqua-600/25 transition-all transform hover:-translate-y-0.5">
+                        Cotizar Sistema
+                    </button>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <div class="md:hidden flex items-center">
+                    <button onclick="toggleMobileMenu()" class="p-2 rounded-lg text-slate-600 hover:text-slate-900 focus:outline-none">
+                        <i class="fa-solid fa-bars text-2xl" id="menu-icon"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Navigation Drawer -->
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-slate-200 px-4 pt-2 pb-4 space-y-2">
+            <button onclick="switchTab('dashboard')" class="w-full text-left px-4 py-3 rounded-lg font-medium text-slate-700 hover:bg-slate-100 flex items-center">
+                <i class="fa-solid fa-chart-line w-8 text-aqua-600"></i>Inicio / Dashboard
+            </button>
+            <button onclick="switchTab('ods')" class="w-full text-left px-4 py-3 rounded-lg font-medium text-slate-700 hover:bg-slate-100 flex items-center">
+                <i class="fa-solid fa-earth-americas w-8 text-aqua-600"></i>Insumos & ODS #6
+            </button>
+            <button onclick="switchTab('canvas')" class="w-full text-left px-4 py-3 rounded-lg font-medium text-slate-700 hover:bg-slate-100 flex items-center">
+                <i class="fa-solid fa-table-cells-large w-8 text-aqua-600"></i>Plan de Negocios
+            </button>
+            <button onclick="switchTab('sensor')" class="w-full text-left px-4 py-3 rounded-lg font-medium text-slate-700 hover:bg-slate-100 flex items-center">
+                <i class="fa-solid fa-microchip w-8 text-aqua-600"></i>Sensor SIAPA IoT
+            </button>
+            <button onclick="switchTab('store')" class="w-full text-left px-4 py-3 rounded-lg font-medium text-slate-700 hover:bg-slate-100 flex items-center">
+                <i class="fa-solid fa-store w-8 text-aqua-600"></i>Tienda & Cotizador
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+        <!-- ================= TAB 1: DASHBOARD / INICIO ================= -->
+        <section id="tab-dashboard" class="tab-content space-y-10">
+            <!-- Hero Banner -->
+            <div class="relative rounded-3xl gradient-bg overflow-hidden text-white shadow-2xl p-8 sm:p-12">
+                <div class="absolute right-0 top-0 -mt-12 -mr-12 opacity-10 pointer-events-none">
+                    <i class="fa-solid fa-droplet text-[300px]"></i>
+                </div>
+                <div class="relative z-10 max-w-3xl space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-cyan-200 text-xs font-semibold uppercase tracking-widest">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Sistema Vivo ZMG
+                    </div>
+                    <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight">
+                        Certeza Jurídica y Agua Potable Segura para Guadalajara
+                    </h1>
+                    <p class="text-slate-200 text-base sm:text-lg leading-relaxed font-light">
+                        Una solución integrada por el **Equipo 1** que combina filtros de alta eficiencia y micro-sensores IoT en tiempo real para diagnosticar y garantizar la calidad del agua de la red del SIAPA.
+                    </p>
+                    <div class="flex flex-wrap gap-4 pt-2">
+                        <button onclick="switchTab('sensor')" class="bg-white text-aqua-900 hover:bg-cyan-50 px-6 py-3 rounded-xl font-bold text-sm transition-all shadow-lg flex items-center gap-2">
+                            <i class="fa-solid fa-sliders"></i> Probar Simulador de Sensor
+                        </button>
+                        <button onclick="switchTab('canvas')" class="bg-white/10 hover:bg-white/20 text-white border border-white/30 px-6 py-3 rounded-xl font-semibold text-sm transition-all flex items-center gap-2">
+                            <i class="fa-solid fa-briefcase"></i> Ver Plan de Negocios
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats Banner -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-sky-100 text-sky-600 flex items-center justify-center text-2xl font-bold flex-shrink-0">
+                        <i class="fa-solid fa-faucet-drip"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-black text-slate-900">74%</div>
+                        <div class="text-xs font-semibold text-slate-500">Hogares ZMG con Agua Turbia</div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center text-2xl font-bold flex-shrink-0">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-black text-slate-900">99.9%</div>
+                        <div class="text-xs font-semibold text-slate-500">Eficiencia de Filtrado</div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-2xl font-bold flex-shrink-0">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-black text-slate-900">24/7</div>
+                        <div class="text-xs font-semibold text-slate-500">Diagnóstico IoT en Vivo</div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex items-center gap-4">
+                    <div class="w-14 h-14 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center text-2xl font-bold flex-shrink-0">
+                        <i class="fa-solid fa-hand-holding-hand"></i>
+                    </div>
+                    <div>
+                        <div class="text-2xl font-black text-slate-900">ODS 6</div>
+                        <div class="text-xs font-semibold text-slate-500">Agua Limpia & Saneamiento</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Team Section Card -->
+            <div class="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm space-y-6">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100 pb-6">
+                    <div>
+                        <span class="text-xs font-bold text-aqua-600 uppercase tracking-widest">Desarrolladores del Proyecto</span>
+                        <h2 class="text-2xl font-bold text-slate-900">Integrantes del Equipo 1</h2>
+                    </div>
+                    <span class="px-4 py-1.5 rounded-full bg-slate-100 text-slate-600 text-xs font-semibold">
+                        Zapopan & ZMG, Jalisco
+                    </span>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <!-- Member 1 -->
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 hover:border-aqua-400 transition-all text-center space-y-2 group">
+                        <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-aqua-500 to-cyan-400 text-white font-bold text-xl mx-auto flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                            JG
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-sm">Jacqueline García Rivera</h3>
+                        <p class="text-xs text-slate-500 font-medium">Líder del Proyecto / Estrategia</p>
+                    </div>
+                    <!-- Member 2 -->
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 hover:border-aqua-400 transition-all text-center space-y-2 group">
+                        <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-aqua-500 to-cyan-400 text-white font-bold text-xl mx-auto flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                            AC
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-sm">Andrea Michelle Chávez Luna</h3>
+                        <p class="text-xs text-slate-500 font-medium">Investigación & Calidad</p>
+                    </div>
+                    <!-- Member 3 -->
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 hover:border-aqua-400 transition-all text-center space-y-2 group">
+                        <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-aqua-500 to-cyan-400 text-white font-bold text-xl mx-auto flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                            EL
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-sm">Erika Goretti León Pérez</h3>
+                        <p class="text-xs text-slate-500 font-medium">Modelo de Negocios</p>
+                    </div>
+                    <!-- Member 4 -->
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 hover:border-aqua-400 transition-all text-center space-y-2 group">
+                        <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-aqua-500 to-cyan-400 text-white font-bold text-xl mx-auto flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                            AM
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-sm">Ana Moreno</h3>
+                        <p class="text-xs text-slate-500 font-medium">Vinculación Institucional</p>
+                    </div>
+                    <!-- Member 5 -->
+                    <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/60 hover:border-aqua-400 transition-all text-center space-y-2 group">
+                        <div class="w-16 h-16 rounded-full bg-gradient-to-tr from-aqua-500 to-cyan-400 text-white font-bold text-xl mx-auto flex items-center justify-center shadow-md group-hover:scale-105 transition-transform">
+                            JG
+                        </div>
+                        <h3 class="font-bold text-slate-900 text-sm">Jesús Guzmán</h3>
+                        <p class="text-xs text-slate-500 font-medium">Desarrollo Tecnológico & IoT</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 2: INSUMOS & ODS 6 ================= -->
+        <section id="tab-ods" class="tab-content hidden space-y-8">
+            <div class="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm space-y-8">
+                <div>
+                    <span class="text-xs font-bold text-aqua-600 uppercase tracking-widest">Insumos y Contextualización</span>
+                    <h2 class="text-3xl font-extrabold text-slate-900">Análisis del Problema ZMG y Alineación ODS</h2>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Technical Problem Breakdown -->
+                    <div class="space-y-6">
+                        <div class="bg-red-50/70 border border-red-200 rounded-2xl p-6 space-y-3">
+                            <div class="flex items-center gap-3 text-red-700 font-bold text-lg">
+                                <i class="fa-solid fa-triangle-exclamation text-xl"></i>
+                                <h3>El Desafío: Red SIAPA y Falta de Certeza Jurídica</h3>
+                            </div>
+                            <p class="text-slate-700 text-sm leading-relaxed">
+                                En la Zona Metropolitana de Guadalajara (ZMG), el agua distribuida por el organismo intermunicipal (SIAPA) presenta fluctuaciones críticas en su calidad (coloración turbia, sedimentos y pesadez de sólidos).
+                            </p>
+                            <p class="text-slate-700 text-sm leading-relaxed">
+                                Los ciudadanos carecen de **certeza jurídica** respecto a la potabilidad del agua que reciben en sus tomas domiciliarias, viéndose obligados a incurrir en gastos excesivos en garrafones o agua embotellada sin respaldo de datos en tiempo real.
+                            </p>
+                        </div>
+
+                        <div class="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-6 space-y-3">
+                            <div class="flex items-center gap-3 text-emerald-800 font-bold text-lg">
+                                <i class="fa-solid fa-circle-check text-xl"></i>
+                                <h3>La Solución Propuesta: Filtrado Domiciliario + Diagnóstico IoT</h3>
+                            </div>
+                            <p class="text-slate-700 text-sm leading-relaxed">
+                                Implementar un sistema modular de filtración de múltiples etapas conectado a un micro-sensor IoT inteligente. El sensor evalúa continuamente parámetros críticos (TDS, PH, Turbidez) y alerta a través de una plataforma web centralizada cuando el agua de la red **NO es segura**, activando el filtro para garantizar **Agua Limpia**.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- ODS Card & Insumos Diagram Visual -->
+                    <div class="space-y-6">
+                        <!-- ODS Card -->
+                        <div class="bg-gradient-to-br from-cyan-600 to-blue-800 rounded-2xl p-6 text-white shadow-xl flex items-center gap-6">
+                            <div class="w-24 h-24 bg-white/10 rounded-2xl flex items-center justify-center flex-shrink-0 text-5xl font-black border border-white/20">
+                                6
+                            </div>
+                            <div>
+                                <span class="text-xs uppercase tracking-widest font-bold text-cyan-200">Objetivo de Desarrollo Sostenible</span>
+                                <h3 class="text-2xl font-bold">Agua Limpia y Saneamiento</h3>
+                                <p class="text-xs text-slate-200 mt-2 leading-relaxed">
+                                    Garantizar la disponibilidad de agua y su gestión sostenible y el saneamiento para todos mediante la modernización de la infraestructura doméstica.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Sketch Reconstruction Breakdown -->
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-4">
+                            <h4 class="font-bold text-slate-900 text-base flex items-center gap-2">
+                                <i class="fa-solid fa-pen-ruler text-aqua-600"></i> Desglose del Boceto Original (Insumo 1)
+                            </h4>
+                            <div class="grid grid-cols-2 gap-3 text-xs">
+                                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                                    <span class="font-bold text-slate-800 block mb-1">1. Red SIAPA</span>
+                                    Suministro directo de la red pública municipal.
+                                </div>
+                                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                                    <span class="font-bold text-slate-800 block mb-1">2. Sistema de Filtro</span>
+                                    Etapas físicas y de carbón activado para purificar.
+                                </div>
+                                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                                    <span class="font-bold text-slate-800 block mb-1">3. Sensor IoT</span>
+                                    Diagnóstico electrónico inteligente de parámetros.
+                                </div>
+                                <div class="bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
+                                    <span class="font-bold text-slate-800 block mb-1">4. Certeza Jurídica</span>
+                                    Evidencia digital transparente de calidad para el ciudadano.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 3: BUSINESS MODEL CANVAS ================= -->
+        <section id="tab-canvas" class="tab-content hidden space-y-6">
+            <div class="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm space-y-6">
+                <div>
+                    <span class="text-xs font-bold text-aqua-600 uppercase tracking-widest">Estrategia Comercial</span>
+                    <h2 class="text-3xl font-extrabold text-slate-900">Business Model Canvas - AquaSafe</h2>
+                    <p class="text-slate-500 text-sm mt-1">Estructura interactiva basada en el plan de negocios validado por el Equipo 1.</p>
+                </div>
+
+                <!-- BMC Grid Layout -->
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                    
+                    <!-- Socios Clave -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3 hover:shadow-md transition-shadow">
+                        <div class="flex items-center gap-2 text-aqua-700 font-bold text-sm">
+                            <i class="fa-solid fa-handshake"></i>
+                            <h3>Socios Clave</h3>
+                        </div>
+                        <ul class="text-xs text-slate-600 space-y-2 list-disc list-inside">
+                            <li><strong>UMAT</strong> (Unidad de Manejo Ambiental)</li>
+                            <li><strong>Agua y Tecnología Zapopan</strong></li>
+                            <li>Técnicos especializados en plomería e IoT</li>
+                            <li>Gobierno y programas públicos sostenibles</li>
+                        </ul>
+                    </div>
+
+                    <!-- Actividades y Recursos Clave (Columna Doble) -->
+                    <div class="space-y-4">
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3 hover:shadow-md transition-shadow">
+                            <div class="flex items-center gap-2 text-aqua-700 font-bold text-sm">
+                                <i class="fa-solid fa-list-check"></i>
+                                <h3>Actividades Clave</h3>
+                            </div>
+                            <ul class="text-xs text-slate-600 space-y-2 list-disc list-inside">
+                                <li>Filtración y purificación de agua</li>
+                                <li>Diagnóstico continuo de calidad (IoT)</li>
+                                <li>Mantenimiento preventivo</li>
+                            </ul>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3 hover:shadow-md transition-shadow">
+                            <div class="flex items-center gap-2 text-aqua-700 font-bold text-sm">
+                                <i class="fa-solid fa-cubes"></i>
+                                <h3>Recursos Clave</h3>
+                            </div>
+                            <ul class="text-xs text-slate-600 space-y-2 list-disc list-inside">
+                                <li>Personal de instalación / Empleados</li>
+                                <li>Equipamientos de filtración de alta precisión</li>
+                                <li>Sensores inteligentes con transmisión Wi-Fi</li>
+                                <li>Plataforma web & App interactiva</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Propuesta de Valor -->
+                    <div class="bg-gradient-to-b from-aqua-50 to-blue-50 border border-aqua-200 rounded-2xl p-5 space-y-3 hover:shadow-md transition-shadow">
+                        <div class="flex items-center gap-2 text-aqua-800 font-bold text-sm">
+                            <i class="fa-solid fa-gem text-aqua-600"></i>
+                            <h3>Propuesta de Valor</h3>
+                        </div>
+                        <ul class="text-xs text-slate-700 space-y-2 list-disc list-inside font-medium">
+                            <li>Kits integrados para filtrar agua de red doméstica</li>
+                            <li>Venta directa en línea fácil y rápida</li>
+                            <li>Envío a domicilio e instalación técnica garantizada</li>
+                            <li><strong>Diagnóstico en tiempo real</strong> sobre calidad del agua con alertas inmediatas</li>
+                        </ul>
+                    </div>
+
+                    <!-- Relación con Clientes y Canales -->
+                    <div class="space-y-4">
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3 hover:shadow-md transition-shadow">
+                            <div class="flex items-center gap-2 text-aqua-700 font-bold text-sm">
+                                <i class="fa-solid fa-comments"></i>
+                                <h3>Relación con Clientes</h3>
+                            </div>
+                            <ul class="text-xs text-slate-600 space-y-2 list-disc list-inside">
+                                <li>Redes sociales e interacción comunitaria</li>
+                                <li>Atención al cliente multicanal</li>
+                                <li>Sitio web e interfaz intuitiva</li>
+                                <li>Atención presencial (cara a cara)</li>
+                            </ul>
+                        </div>
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3 hover:shadow-md transition-shadow">
+                            <div class="flex items-center gap-2 text-aqua-700 font-bold text-sm">
+                                <i class="fa-solid fa-truck-fast"></i>
+                                <h3>Canales / Distribución</h3>
+                            </div>
+                            <ul class="text-xs text-slate-600 space-y-2 list-disc list-inside">
+                                <li>Canal en línea (E-commerce)</li>
+                                <li>Servicio de logística con envío e instalación incluida</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Segmentos de Mercado -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3 hover:shadow-md transition-shadow">
+                        <div class="flex items-center gap-2 text-aqua-700 font-bold text-sm">
+                            <i class="fa-solid fa-users"></i>
+                            <h3>Segmentos de Mercado</h3>
+                        </div>
+                        <ul class="text-xs text-slate-600 space-y-2 list-disc list-inside">
+                            <li>Particulares dentro de la ZMG (Zona Metropolitana de Guadalajara)</li>
+                            <li>Sectores organizados por zonas o cotos residenciales</li>
+                            <li>Beneficiarios de subsidios y participación gubernamental</li>
+                        </ul>
+                    </div>
+
+                </div>
+
+                <!-- Bottom Rows: Costes e Ingresos -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <!-- Costes -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3">
+                        <div class="flex items-center gap-2 text-red-700 font-bold text-sm">
+                            <i class="fa-solid fa-wallet"></i>
+                            <h3>Estructura de Costes</h3>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2 text-xs text-slate-600">
+                            <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+                                <strong>Salarios:</strong> Personal técnico y administrativo.
+                            </div>
+                            <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+                                <strong>Marketing:</strong> Campañas de concientización y ventas.
+                            </div>
+                            <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+                                <strong>Mantenimiento:</strong> Compra de stock y herramientas.
+                            </div>
+                            <div class="bg-white p-2.5 rounded-lg border border-slate-200">
+                                <strong>Administración:</strong> Gastos fijos y plataforma web.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Ingresos -->
+                    <div class="bg-emerald-50/50 border border-emerald-200 rounded-2xl p-5 space-y-3">
+                        <div class="flex items-center gap-2 text-emerald-800 font-bold text-sm">
+                            <i class="fa-solid fa-sack-dollar"></i>
+                            <h3>Fuentes de Ingresos y Modelo de Tarifas</h3>
+                        </div>
+                        <div class="space-y-2 text-xs text-slate-700">
+                            <div class="bg-white p-3 rounded-xl border border-emerald-100 flex items-center justify-between">
+                                <span>Venta directa de kit (Filtro + Sensor IoT inteligente)</span>
+                                <span class="font-bold text-emerald-600">Pago único</span>
+                            </div>
+                            <div class="bg-white p-3 rounded-xl border border-emerald-100 flex items-center justify-between">
+                                <span>Mantenimiento semestral (Sustitución de cartuchos)</span>
+                                <span class="font-bold text-emerald-600">¡GRATIS 1er año!</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 4: SENSOR IOT SIMULATOR ================= -->
+        <section id="tab-sensor" class="tab-content hidden space-y-8">
+            <div class="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm space-y-8">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <div>
+                        <span class="text-xs font-bold text-aqua-600 uppercase tracking-widest">Simulador en Tiempo Real</span>
+                        <h2 class="text-3xl font-extrabold text-slate-900">Monitor de Calidad de Agua SIAPA vs Filtro</h2>
+                    </div>
+
+                    <!-- Source Selector Switch -->
+                    <div class="bg-slate-100 p-1.5 rounded-2xl border border-slate-200 flex items-center gap-1">
+                        <button id="btn-siapa" onclick="setWaterSource('siapa')" class="px-4 py-2 rounded-xl text-xs font-bold transition-all bg-red-500 text-white shadow-sm">
+                            <i class="fa-solid fa-faucet text-sm mr-1"></i> Agua Red SIAPA
+                        </button>
+                        <button id="btn-filtered" onclick="setWaterSource('filtered')" class="px-4 py-2 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900">
+                            <i class="fa-solid fa-filter text-sm mr-1"></i> Agua Filtrada AquaSafe
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Alert Status Banner -->
+                <div id="status-banner" class="rounded-2xl p-6 transition-all duration-300 bg-red-50 border-2 border-red-500 text-red-900 flex items-center justify-between shadow-md">
+                    <div class="flex items-center gap-4">
+                        <div id="status-icon-box" class="w-14 h-14 rounded-full bg-red-500 text-white flex items-center justify-center text-2xl font-bold pulse-warning flex-shrink-0">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                        </div>
+                        <div>
+                            <span class="text-xs font-black uppercase tracking-wider text-red-600 block">Diagnóstico del Sensor IoT</span>
+                            <h3 id="status-title" class="text-2xl font-black">AGUA NO SEGURA</h3>
+                            <p id="status-desc" class="text-xs text-red-700 mt-1">
+                                Sólidos disueltos elevados y turbidez fuera del rango permitido por la NOM-127-SSA1-2021.
+                            </p>
+                        </div>
+                    </div>
+                    <div id="status-badge" class="hidden sm:block text-right">
+                        <span class="px-4 py-2 rounded-full bg-red-200 text-red-800 text-xs font-bold">
+                            Alerta Activa
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Metrics Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <!-- Metric 1: TDS -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-2">
+                        <div class="flex justify-between items-center text-slate-500 text-xs font-bold">
+                            <span>Sólidos Disueltos (TDS)</span>
+                            <i class="fa-solid fa-vial text-aqua-600"></i>
+                        </div>
+                        <div class="flex items-baseline gap-2">
+                            <span id="metric-tds" class="text-3xl font-black text-slate-900">420</span>
+                            <span class="text-xs text-slate-500 font-semibold">ppm (mg/L)</span>
+                        </div>
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div id="bar-tds" class="bg-red-500 h-full w-[80%] transition-all duration-500"></div>
+                        </div>
+                        <p class="text-[11px] text-slate-500">Óptimo potable: &lt; 150 ppm</p>
+                    </div>
+
+                    <!-- Metric 2: pH -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-2">
+                        <div class="flex justify-between items-center text-slate-500 text-xs font-bold">
+                            <span>Nivel de pH</span>
+                            <i class="fa-solid fa-flask text-aqua-600"></i>
+                        </div>
+                        <div class="flex items-baseline gap-2">
+                            <span id="metric-ph" class="text-3xl font-black text-slate-900">8.9</span>
+                            <span class="text-xs text-slate-500 font-semibold">pH</span>
+                        </div>
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div id="bar-ph" class="bg-amber-500 h-full w-[65%] transition-all duration-500"></div>
+                        </div>
+                        <p class="text-[11px] text-slate-500">Rango ideal: 6.5 - 7.5</p>
+                    </div>
+
+                    <!-- Metric 3: Turbidity -->
+                    <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-2">
+                        <div class="flex justify-between items-center text-slate-500 text-xs font-bold">
+                            <span>Turbidez</span>
+                            <i class="fa-solid fa-eye-low-vision text-aqua-600"></i>
+                        </div>
+                        <div class="flex items-baseline gap-2">
+                            <span id="metric-turb" class="text-3xl font-black text-slate-900">8.4</span>
+                            <span class="text-xs text-slate-500 font-semibold">NTU</span>
+                        </div>
+                        <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                            <div id="bar-turb" class="bg-red-500 h-full w-[85%] transition-all duration-500"></div>
+                        </div>
+                        <p class="text-[11px] text-slate-500">Límite norma: &lt; 3 NTU</p>
+                    </div>
+                </div>
+
+                <!-- Real-time Chart -->
+                <div class="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-slate-800 text-sm">Histórico de Calidad de Agua (Últimas 12 Lecturas)</h4>
+                        <span class="text-xs font-semibold text-slate-400">Actualizado cada 2s</span>
+                    </div>
+                    <div class="h-64">
+                        <canvas id="waterChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB 5: TIENDA & COTIZADOR ================= -->
+        <section id="tab-store" class="tab-content hidden space-y-10">
+            <div class="bg-white rounded-3xl p-8 border border-slate-200/80 shadow-sm space-y-8">
+                <div>
+                    <span class="text-xs font-bold text-aqua-600 uppercase tracking-widest">Productos & Mantenimiento</span>
+                    <h2 class="text-3xl font-extrabold text-slate-900">Soluciones AquaSafe ZMG</h2>
+                </div>
+
+                <!-- Product Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <!-- Standard Home Kit -->
+                    <div class="border-2 border-slate-200 rounded-3xl p-6 space-y-6 hover:border-aqua-500 transition-all flex flex-col justify-between">
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-start">
+                                <span class="px-3 py-1 rounded-full bg-aqua-100 text-aqua-700 text-xs font-bold">Residencial / Particular</span>
+                                <span class="text-2xl font-black text-slate-900">$3,450 <span class="text-xs text-slate-500 font-normal">MXN</span></span>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-900">Kit AquaSafe Residencial + Sensor IoT</h3>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Sistema de filtración modular de 4 etapas (Sedimento, Carbón Activado, Membrana Micron y Luz UV) integrado con micro-sensor inteligente SIAPA.
+                            </p>
+                            <ul class="text-xs text-slate-600 space-y-2">
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Envío e Instalación a domicilio en ZMG</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Conexión Wi-Fi a App/Plataforma Web</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500 font-bold"></i> Mantenimiento semestral GRATIS (Primer año)</li>
+                            </ul>
+                        </div>
+                        <button onclick="openQuotationModal('Kit Residencial', 3450)" class="w-full py-3 bg-aqua-600 hover:bg-aqua-700 text-white rounded-xl text-sm font-bold shadow-md transition-all">
+                            Solicitar Cotización Particular
+                        </button>
+                    </div>
+
+                    <!-- Coto / Zone Kit -->
+                    <div class="border-2 border-aqua-500 rounded-3xl p-6 space-y-6 bg-gradient-to-b from-white to-aqua-50/30 flex flex-col justify-between relative overflow-hidden">
+                        <div class="absolute top-4 right-4 bg-emerald-500 text-white text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-wider">
+                            Popular Cotos
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-start">
+                                <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">Comunitario / Cotos</span>
+                                <span class="text-2xl font-black text-slate-900">$2,950 <span class="text-xs text-slate-500 font-normal">MXN / casa</span></span>
+                            </div>
+                            <h3 class="text-xl font-bold text-slate-900">Plan Integral Cotos & Zonas ZMG</h3>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Equipamiento masivo para fraccionamientos o cotos residenciales. Incluye monitoreo centralizado para la administración del coto.
+                            </p>
+                            <ul class="text-xs text-slate-600 space-y-2">
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Descuento por volumen comunitario</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Tablero centralizado para administración</li>
+                                <li class="flex items-center gap-2"><i class="fa-solid fa-check text-emerald-500"></i> Mantenimiento programado en lote</li>
+                            </ul>
+                        </div>
+                        <button onclick="openQuotationModal('Plan Cotos', 2950)" class="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-sm font-bold shadow-md transition-all">
+                            Cotizar para Coto / Vecinos
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Calculator Section -->
+                <div class="bg-slate-50 border border-slate-200 rounded-3xl p-6 space-y-6">
+                    <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-calculator text-aqua-600"></i> Calculadora de Inversión y Ahorro Garrafones
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-2">Garrafones consumidos por semana (Hogar):</label>
+                            <input type="number" id="calc-garrafones" value="4" min="1" oninput="calculateSavings()" class="w-full p-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-aqua-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-2">Precio promedio por garrafón ($):</label>
+                            <input type="number" id="calc-precio" value="48" min="10" oninput="calculateSavings()" class="w-full p-3 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-aqua-500 outline-none">
+                        </div>
+                        <div class="bg-white p-4 rounded-xl border border-slate-200 space-y-1 flex flex-col justify-center">
+                            <span class="text-xs text-slate-500 font-semibold">Gasto Actual Anual en Agua:</span>
+                            <span id="calc-gasto-anual" class="text-2xl font-black text-red-600">$9,984 MXN</span>
+                            <span id="calc-ahorro" class="text-xs text-emerald-600 font-bold">Recuperas la inversión en ~4 meses</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal Cotización -->
+    <div id="quote-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl relative">
+            <button onclick="closeQuotationModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-lg">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <h3 class="text-xl font-bold text-slate-900" id="modal-title">Solicitar Cotización</h3>
+            <p class="text-xs text-slate-500">Llena tus datos para recibir atención personalizada en tu domicilio en la ZMG.</p>
+            
+            <form onsubmit="submitForm(event)" class="space-y-3 text-xs">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Nombre Completo</label>
+                    <input type="text" required placeholder="Ej. Ana María Gómez" class="w-full p-2.5 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-aqua-500">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Colonia / Coto (ZMG)</label>
+                    <input type="text" required placeholder="Ej. Bugambilias, Zapopan" class="w-full p-2.5 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-aqua-500">
+                </div>
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">Teléfono WhatsApp</label>
+                    <input type="tel" required placeholder="33 0000 0000" class="w-full p-2.5 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-aqua-500">
+                </div>
+                <div class="pt-2">
+                    <button type="submit" class="w-full py-3 bg-aqua-600 hover:bg-aqua-700 text-white rounded-xl font-bold shadow-md transition-all text-sm">
+                        Enviar Solicitud
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl hidden text-xs font-semibold flex items-center gap-3 z-50">
+        <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+        <span id="toast-message">Solicitud recibida exitosamente.</span>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 border-t border-slate-800 text-xs py-8">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div>
+                <span class="text-white font-bold text-sm">AquaSafe ZMG</span> - Solución ODS #6 por Equipo 1
+            </div>
+            <div class="text-center sm:text-right text-slate-500">
+                Universidad & Vinculación Zapopan / UMAT • 2026
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Tab Switcher Function
+        function switchTab(tabId) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            // Remove active classes from buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'text-aqua-700', 'shadow-sm');
+                btn.classList.add('text-slate-600');
+            });
+
+            // Show selected tab
+            const targetTab = document.getElementById('tab-' + tabId);
+            if (targetTab) {
+                targetTab.classList.remove('hidden');
+            }
+
+            // Highlight nav button
+            const activeBtn = document.getElementById('nav-' + tabId);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-white', 'text-aqua-700', 'shadow-sm');
+                activeBtn.classList.remove('text-slate-600');
+            }
+
+            // Close mobile menu if open
+            document.getElementById('mobile-menu').classList.add('hidden');
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
+
+        // Water Source Simulation Logic
+        let currentSource = 'siapa';
+        let chart;
+
+        const dataSiapa = [380, 410, 425, 390, 440, 420, 460, 430, 415, 450, 435, 420];
+        const dataFiltered = [35, 32, 28, 30, 25, 27, 24, 26, 22, 25, 23, 20];
+
+        function setWaterSource(source) {
+            currentSource = source;
+            const btnSiapa = document.getElementById('btn-siapa');
+            const btnFiltered = document.getElementById('btn-filtered');
+
+            const statusBanner = document.getElementById('status-banner');
+            const statusIconBox = document.getElementById('status-icon-box');
+            const statusTitle = document.getElementById('status-title');
+            const statusDesc = document.getElementById('status-desc');
+
+            const metricTds = document.getElementById('metric-tds');
+            const barTds = document.getElementById('bar-tds');
+
+            const metricPh = document.getElementById('metric-ph');
+            const barPh = document.getElementById('bar-ph');
+
+            const metricTurb = document.getElementById('metric-turb');
+            const barTurb = document.getElementById('bar-turb');
+
+            if (source === 'siapa') {
+                btnSiapa.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-all bg-red-500 text-white shadow-sm';
+                btnFiltered.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900';
+
+                statusBanner.className = 'rounded-2xl p-6 transition-all duration-300 bg-red-50 border-2 border-red-500 text-red-900 flex items-center justify-between shadow-md';
+                statusIconBox.className = 'w-14 h-14 rounded-full bg-red-500 text-white flex items-center justify-center text-2xl font-bold pulse-warning flex-shrink-0';
+                statusIconBox.innerHTML = '<i class="fa-solid fa-circle-xmark"></i>';
+                statusTitle.innerText = 'AGUA NO SEGURA';
+                statusDesc.innerText = 'Sólidos disueltos elevados y turbidez fuera del rango de salubridad. Requiere filtrado inmediato.';
+
+                metricTds.innerText = '420';
+                barTds.className = 'bg-red-500 h-full w-[80%] transition-all duration-500';
+
+                metricPh.innerText = '8.9';
+                barPh.className = 'bg-amber-500 h-full w-[65%] transition-all duration-500';
+
+                metricTurb.innerText = '8.4';
+                barTurb.className = 'bg-red-500 h-full w-[85%] transition-all duration-500';
+
+                updateChart(dataSiapa, '#ef4444', 'TDS Red SIAPA (ppm)');
+            } else {
+                btnFiltered.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-all bg-emerald-500 text-white shadow-sm';
+                btnSiapa.className = 'px-4 py-2 rounded-xl text-xs font-bold transition-all text-slate-600 hover:text-slate-900';
+
+                statusBanner.className = 'rounded-2xl p-6 transition-all duration-300 bg-emerald-50 border-2 border-emerald-500 text-emerald-900 flex items-center justify-between shadow-md';
+                statusIconBox.className = 'w-14 h-14 rounded-full bg-emerald-500 text-white flex items-center justify-center text-2xl font-bold pulse-safe flex-shrink-0';
+                statusIconBox.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+                statusTitle.innerText = 'AGUA LIMPIA Y SEGURA';
+                statusDesc.innerText = 'Agua purificada cumpliendo estrictamente la norma NOM-127. Optima para consumo humano.';
+
+                metricTds.innerText = '24';
+                barTds.className = 'bg-emerald-500 h-full w-[15%] transition-all duration-500';
+
+                metricPh.innerText = '7.2';
+                barPh.className = 'bg-emerald-500 h-full w-[40%] transition-all duration-500';
+
+                metricTurb.innerText = '0.2';
+                barTurb.className = 'bg-emerald-500 h-full w-[5%] transition-all duration-500';
+
+                updateChart(dataFiltered, '#10b981', 'TDS Agua Purificada AquaSafe (ppm)');
+            }
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('waterChart').getContext('2d');
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['12m', '11m', '10m', '9m', '8m', '7m', '6m', '5m', '4m', '3m', '2m', 'Ahora'],
+                    datasets: [{
+                        label: 'TDS Red SIAPA (ppm)',
+                        data: dataSiapa,
+                        borderColor: '#ef4444',
+                        backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'top' }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, max: 500 }
+                    }
+                }
+            });
+        }
+
+        function updateChart(newData, color, label) {
+            if (!chart) return;
+            chart.data.datasets[0].data = newData;
+            chart.data.datasets[0].borderColor = color;
+            chart.data.datasets[0].backgroundColor = color + '22';
+            chart.data.datasets[0].label = label;
+            chart.update();
+        }
+
+        // Savings Calculator
+        function calculateSavings() {
+            const garrafones = parseFloat(document.getElementById('calc-garrafones').value) || 0;
+            const precio = parseFloat(document.getElementById('calc-precio').value) || 0;
+
+            const gastoSemanal = garrafones * precio;
+            const gastoAnual = gastoSemanal * 52;
+
+            document.getElementById('calc-gasto-anual').innerText = `$${gastoAnual.toLocaleString()} MXN`;
+
+            const ahorroText = document.getElementById('calc-ahorro');
+            if (gastoAnual > 3450) {
+                const meses = Math.ceil((3450 / (gastoAnual / 12)));
+                ahorroText.innerText = `Recuperas tu inversión en ~${meses} meses`;
+            } else {
+                ahorroText.innerText = `Ahorras dinero a partir del segundo año`;
+            }
+        }
+
+        // Quotation Modal Logic
+        function openQuotationModal(planName, price) {
+            document.getElementById('modal-title').innerText = `Solicitar ${planName}`;
+            document.getElementById('quote-modal').classList.remove('hidden');
+        }
+
+        function closeQuotationModal() {
+            document.getElementById('quote-modal').classList.add('hidden');
+        }
+
+        function submitForm(event) {
+            event.preventDefault();
+            closeQuotationModal();
+
+            const toast = document.getElementById('toast');
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3500);
+        }
+
+        // Initialize on Load
+        window.onload = function() {
+            initChart();
+            calculateSavings();
+            switchTab('dashboard');
+        };
+    </script>
+</body>
+</html>
